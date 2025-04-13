@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "ocr-icecandylovers",
+  "private_key_id": "afff4ffb7a2ffa749f81e37e90bde53e51a53f0c",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCv5uePuQtb7Lpx\nEHdXx2MR+2Je7lnMhB41nvB53goUeXtoqQ9eFErfQr+J0duPnir5czb4atakEvGD\nWbv2K7ocC+IrfsjQmtBlPxVV1Nfl0av7a9Hh9ritWn2HlsC7cbn6blaO2isEDmto\nzHmTMEtm1Wy5IuKGkLPUhsim+FfWU0GelXpMqmy0JQAWYKOLjyHix+PDYlyGXQNM\nMOWXRQ96Xh1s0ebXvqMstbSXddu9VqJioaP8mu8VS5yGZcNgIQYOHKxzd1h3zbT8\nTLfE32LEsJx45+riHl3yWC5xrEzU7D210imJ7vPqDYoA38VZADM8EogF6GEdCSme\nfuEESpxvAgMBAAECggEAGf9QfgdlTGLCc29xlAGd/Mxgj5M+pmFobZheBkTwzHHf\n8Wn7IXZyUmj1EhN4FdPUmiWTHEf+DSXXmAgtJYb07Kw88xy75UjcP/qA1rysZAUH\nHBOlY3YpeUWEhAOd3JZEXGTuWhKYhPL0oPqHhV9/5WTpursTK7w7N8/r2/GcWcqZ\njzMN0G2coFKXZFd1HZb6cf7iIqXP5kUPRURI5ah1Gm9qrAakRXNHIGdv+RDJi12j\nwodcnYhg9oQF2zAqY/4W+vNjcHKsyakz94LMfQyF9uZHBGrBF0GPs723CfPoub1x\nEDE+ui2VV7rax3TgUr7xvULefqafxFUvvYFfJnigIQKBgQDWoLLLaMNAHTgqr8iC\nZjTRD+IcNbgeBluYYghNFs53ooZUY1Rw3T5xtImXY4IZYslwpq+WC4jkj7z57hpC\nv99JNNHnEZGcQWYDcPkdrwTIojhuvBfRncphvbSWGwtXstogkc+Jr6UcOfnSlUcr\nIQsHvTlIqXrnhzJvPuVqjqkEyQKBgQDRzzGuiK6joa0lJDuWGNKSIf5bGPO0bZXB\nHtGViw1hy/0TNs8fExeslprK4w59eS3OMdiZQafHoWNi0GDr+uYNl1A0jQcprSDf\nCaQpBbR2oMxH4oIJrEk6tE+UipCbH0PH4zIshyG8D25OAneSJBoNn9EqmY6N27G5\nZ1cown7LdwKBgGO2Drqfdi5gJMr4FZA3SYxi86olbt9MFtupl6+wy8Ua1Yt5Bi7V\nKoCK3m1dxoBiu7FBT0vHGhcNjD8U1lBycZrCFk5ihCJy46DvqFyZBgDsFImliu9Q\nfkiAaNhfwhpBNkNxWljeKDf/20dxILoxxL0YtPdD/Zx42/6A2vZxRqa5AoGAG2XB\nCReUJo4APC9lEI6hQK/rtR2nBVKiEZvipnKIBtNKcu3fUiF+H+1yvTe1NrFSR/C+\nZhTqwejTP54Saf5TeEbgFFyuKMUQ2884fpreG/eXdXOgo365+U5+bdlCVN9aTIng\njWv//bzOHKW5032fYVQTTkrLEL81kA5slUgAorUCgYEA0JYaWDjmc9IdR4BByVXO\n2z30+fFtmN94ZeHeMs+TAjk2C/6/1u61AUJFA+Vl7XS/VCnrxQegC9r6FOVhfvCD\n5CdSZdLX9stEdk+gZeYituog2SoanvlNQC7WTyhq2noyjACmQJ81FM846yt046Dh\n4TxPR2m07tIdVFtwNe9cwRs=\n-----END PRIVATE KEY-----\n",
+  "client_email": "ocr-service-account@ocr-icecandylovers.iam.gserviceaccount.com",
+  "client_id": "115207235478543622288",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/ocr-service-account%40ocr-icecandylovers.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}
