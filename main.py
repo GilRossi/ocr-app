@@ -1,33 +1,34 @@
 import json
 import logging
-import os
 from datetime import datetime
-from functools import lru_cache
-from pathlib import Path
 from typing import Literal
 
 from fastapi import FastAPI, File, HTTPException, Query, UploadFile
 from fastapi.responses import FileResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
-from google.cloud import vision
 from pydantic import BaseModel, Field
 
 from app_paths import FEEDBACK_DIR, LATEST_RESULT_PATH, LEARNING_CHART_PATH, PAINEL_DIR, ensure_runtime_dirs
-from parser.adaptive_parser import processar_imagem_vision
 from parser.learn_parser import aplicar_aprendizado_incremental
 from parser.utils import atualizar_ultimo_json
 from scripts.grafico_aprendizado import gerar_grafico_aprendizado
+from services.ocr_service import processar_ocr
+from settings import load_settings
 
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
 ensure_runtime_dirs()
+settings = load_settings()
 
-app = FastAPI(title="OCR App", version="1.0.0")
+app = FastAPI(
+    title="OCR App",
+    version="1.1.0",
+    docs_url="/docs" if settings.enable_docs else None,
+    redoc_url="/redoc" if settings.enable_docs else None,
+)
 app.mount("/painel", StaticFiles(directory=str(PAINEL_DIR), html=True), name="painel")
-
-MAX_UPLOAD_BYTES = 10 * 1024 * 1024
 
 
 class FeedbackItem(BaseModel):
@@ -38,28 +39,29 @@ class FeedbackItem(BaseModel):
     status: Literal["ok", "ajustar"]
 
 
-@lru_cache(maxsize=1)
-def get_vision_client() -> vision.ImageAnnotatorClient:
-    credentials_path = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
-    if not credentials_path:
-        raise RuntimeError("A variável GOOGLE_APPLICATION_CREDENTIALS não foi definida.")
-    if not Path(credentials_path).exists():
-        raise RuntimeError("O arquivo de credenciais configurado não existe.")
-    return vision.ImageAnnotatorClient()
-
-
 def validar_upload_imagem(file: UploadFile, content: bytes) -> None:
     if not file.content_type or not file.content_type.startswith("image/"):
         raise HTTPException(status_code=400, detail="Envie um arquivo de imagem válido.")
     if not content:
         raise HTTPException(status_code=400, detail="O arquivo enviado está vazio.")
-    if len(content) > MAX_UPLOAD_BYTES:
-        raise HTTPException(status_code=413, detail="A imagem excede o limite de 10 MB.")
+    if len(content) > settings.max_upload_bytes:
+        limite_mb = settings.max_upload_bytes // (1024 * 1024)
+        raise HTTPException(status_code=413, detail=f"A imagem excede o limite de {limite_mb} MB.")
 
 
 @app.get("/", include_in_schema=False)
 async def redirecionar_root() -> RedirectResponse:
     return RedirectResponse("/painel")
+
+
+@app.get("/health")
+async def healthcheck() -> dict:
+    return {
+        "status": "ok",
+        "app_env": settings.app_env,
+        "ocr_provider": settings.ocr_provider,
+        "docs_enabled": settings.enable_docs,
+    }
 
 
 @app.get("/ultimoreconhecimento.json", include_in_schema=False)
@@ -79,13 +81,14 @@ async def ocr_vision(
         validar_upload_imagem(file, content)
         logger.info("[OCR] Iniciando OCR com %s execuções. Arquivo: %s", execucoes, file.filename)
 
-        resultado = processar_imagem_vision(get_vision_client(), content, execucoes)
+        resultado = processar_ocr(content, execucoes, settings)
         caminho_atualizado = atualizar_ultimo_json()
         logger.info("[OCR] Resultado atualizado em %s", caminho_atualizado)
 
         return {
             "imagem_hash": resultado["imagem_hash"],
             "timestamp": resultado["timestamp"],
+            "ocr_provider": resultado["ocr_provider"],
             "promocoes": resultado["resultados_parser"][0] if resultado["resultados_parser"] else [],
         }
     except HTTPException:

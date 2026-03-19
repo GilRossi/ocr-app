@@ -10,9 +10,11 @@ Sistema de OCR para leitura de encartes promocionais com **FastAPI**, extração
 * **FastAPI**
 * **Uvicorn**
 * **Google Cloud Vision API**
+* **Modo Mock para OCR local**
 * **HTML, CSS e JavaScript**
 * **Matplotlib**
 * **JSON** para persistência local de resultados e feedbacks
+* **GitHub Actions** para CI
 
 ---
 
@@ -22,14 +24,20 @@ Sistema de OCR para leitura de encartes promocionais com **FastAPI**, extração
 ocr-app/
 │
 ├── main.py                          # API FastAPI e endpoints principais
+├── settings.py                      # Configuração centralizada por variáveis de ambiente
 ├── ocr_pipeline.py                  # Pipeline batch para imagens locais
 ├── requirements.txt                 # Dependências do projeto
+├── .env.example                     # Exemplo de configuração local
+├── Makefile                         # Atalhos de setup, execução e testes
 │
 ├── parser/
 │   ├── adaptive_parser.py           # OCR repetido + persistência em dataset
 │   ├── base_parser.py               # Regras de extração das promoções
 │   ├── learn_parser.py              # Fluxo de aprendizado baseado em feedback
 │   └── utils.py                     # Utilitários de cópia do último JSON
+│
+├── services/
+│   └── ocr_service.py               # Estratégia de OCR (Google ou mock)
 │
 ├── pipeline/
 │   └── ajustar_parser.py            # Comparação entre dataset e parser atual
@@ -45,6 +53,7 @@ ocr-app/
 │
 ├── dataset/                         # Resultados OCR e amostras para análise
 ├── feedbacks/                       # Correções feitas no painel
+├── .github/workflows/ci.yml         # Pipeline de testes automatizados
 └── grafico_aprendizado.png          # Gráfico gerado a partir dos feedbacks
 ```
 
@@ -55,6 +64,8 @@ ocr-app/
 ### Separação por responsabilidade
 
 * `main.py` expõe a API HTTP e serve o painel web.
+* `settings.py` centraliza configuração de ambiente e limites operacionais.
+* `services/` encapsula a estratégia de OCR e reduz acoplamento na camada HTTP.
 * `parser/` concentra a extração das promoções a partir do texto reconhecido.
 * `scripts/` e `pipeline/` apoiam análise, sincronização de artefatos e avaliação local.
 * `public/` contém a interface de revisão usada para correção humana.
@@ -77,7 +88,7 @@ ocr-app/
 ### 📷 OCR de imagens promocionais
 
 * Upload de imagem via endpoint `/ocr`
-* Processamento usando Google Cloud Vision
+* Processamento usando Google Cloud Vision ou modo `mock`
 * Geração de hash e versionamento do resultado por timestamp
 
 ### 🧠 Parser de promoções
@@ -104,11 +115,17 @@ ocr-app/
 * Endpoint `/grafico` para visualização da evolução dos feedbacks
 * Script dedicado para gerar `grafico_aprendizado.png`
 
+### 🩺 Observabilidade básica
+
+* Endpoint `/health` com ambiente, provider ativo e status da API
+* Pipeline CI com execução automática dos testes
+
 ---
 
 ## 🌐 Endpoints Disponíveis
 
 * `GET /` redireciona para o painel
+* `GET /health` retorna status básico da aplicação
 * `POST /ocr` processa uma imagem enviada
 * `POST /feedback` salva correções enviadas pelo painel
 * `POST /atualizar-json` publica o último JSON gerado
@@ -123,8 +140,8 @@ ocr-app/
 ### Pré-requisitos
 
 * Python 3.12+
-* Conta Google Cloud com Vision API habilitada
-* Arquivo de credenciais de service account
+* Conta Google Cloud com Vision API habilitada para modo real
+* Arquivo de credenciais de service account para modo real
 
 ### Configuração do ambiente
 
@@ -145,9 +162,20 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-4. **Configurar credenciais do Google Vision**
+4. **Escolher modo de OCR**
+
+Para testar localmente sem dependência externa, use o modo mock:
+
+```bash
+cp .env.example .env
+export OCR_PROVIDER=mock
+```
+
+Para usar OCR real com Google Vision:
+
 ```bash
 export GOOGLE_APPLICATION_CREDENTIALS=/caminho/para/sua-service-account.json
+export OCR_PROVIDER=google
 ```
 
 As credenciais devem ficar fora do repositório.
@@ -157,9 +185,17 @@ As credenciais devem ficar fora do repositório.
 uvicorn main:app --reload
 ```
 
+Ou com Makefile:
+
+```bash
+make setup
+make run
+```
+
 6. **Acessar o sistema**
 * Painel web: http://127.0.0.1:8000/painel
 * Documentação da API: http://127.0.0.1:8000/docs
+* Healthcheck: http://127.0.0.1:8000/health
 
 ---
 
@@ -195,6 +231,14 @@ python3 pipeline/ajustar_parser.py
 python3 -m unittest discover -s tests
 ```
 
+### Executar com Makefile
+
+```bash
+make test
+make learn
+make graph
+```
+
 ---
 
 ## 📘 Documentação Operacional
@@ -210,7 +254,7 @@ python3 -m unittest discover -s tests
 ### Fluxo OCR
 
 ```text
-Imagem -> Google Vision -> Texto OCR -> Parser -> JSON em dataset -> Painel
+Imagem -> OCR mock/Google -> Texto OCR -> Parser -> JSON em dataset -> Painel
 ```
 
 ### Fluxo de Correção
@@ -229,20 +273,10 @@ Dataset salvo -> Comparação com parser atual -> Resumo de similaridade
 
 ## ⚠️ Limitações Atuais
 
-* O parser é heurístico e depende fortemente do formato do encarte.
-* A persistência local em arquivos JSON não é adequada para uso concorrente ou produção.
-* O fluxo de aprendizado incremental ainda é heurístico e deve evoluir com regras mais específicas.
-* A suíte automatizada atual cobre os fluxos críticos básicos, mas ainda não cobre integração real com Google Vision.
-
----
-
-## 📚 Próximos Passos
-
-* Adicionar testes automatizados para parser e endpoints
-* Externalizar configurações e caminhos para variáveis de ambiente
-* Remover artefatos gerados e credenciais do versionamento
-* Melhorar a estratégia de aprendizado a partir dos feedbacks
-* Evoluir o parser para modelos mais resilientes a ruído de OCR
+* O parser continua heurístico e depende do layout do encarte.
+* A persistência local em JSON não é adequada para concorrência real.
+* O modo mock é voltado para desenvolvimento e não substitui a validação com OCR real.
+* Ainda faltam testes de integração com uma credencial Google Vision real em ambiente controlado.
 
 ---
 

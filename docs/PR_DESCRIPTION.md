@@ -9,8 +9,9 @@ Este PR corrige problemas críticos de segurança, estabilidade e versionamento 
 - remove credencial sensível e endurece o versionamento
 - corrige o fluxo de aprendizado incremental
 - melhora validações e tratamento de erro na API FastAPI
+- adiciona modo mock para OCR local e endpoint `/health`
 - reduz risco de XSS no painel web
-- adiciona testes automatizados e README atualizado
+- adiciona testes automatizados, CI, `.env.example`, `Makefile` e README atualizado
 - adiciona documentação operacional e de release
 
 ## Impacto

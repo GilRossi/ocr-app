@@ -15,6 +15,14 @@ cd /home/gil/workspace/claude/ocr-app
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
+export OCR_PROVIDER=mock
+uvicorn main:app --host 127.0.0.1 --port 8000 --reload
+```
+
+Para OCR real:
+
+```bash
+export OCR_PROVIDER=google
 export GOOGLE_APPLICATION_CREDENTIALS=/caminho/seguro/nova-service-account.json
 uvicorn main:app --host 127.0.0.1 --port 8000 --reload
 ```
@@ -23,6 +31,7 @@ uvicorn main:app --host 127.0.0.1 --port 8000 --reload
 
 - abrir `http://127.0.0.1:8000/painel`
 - abrir `http://127.0.0.1:8000/docs`
+- abrir `http://127.0.0.1:8000/health`
 - rodar `python -m unittest discover -s tests`
 - enviar uma imagem real no painel
 - confirmar geração de JSON em `dataset/`

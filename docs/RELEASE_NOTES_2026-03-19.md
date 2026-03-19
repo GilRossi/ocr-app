@@ -23,20 +23,27 @@ Esta entrega endurece o projeto em quatro frentes:
 - correção do endpoint `/aprender` para executar aprendizado de forma nativa
 - implementação de regras dinâmicas de parser em `dataset/parser_learning_rules.json`
 - centralização de paths de runtime em `app_paths.py`
+- centralização de configuração por ambiente em `settings.py`
+- nova camada de serviço para OCR em `services/ocr_service.py`
 - validação de uploads com tipo, tamanho máximo e conteúdo não vazio
 - melhoria no tratamento de exceções e logs
+- endpoint `/health` para diagnóstico operacional
+- modo `mock` para OCR local sem dependência de credencial externa
 
 ### Frontend
 
 - correção da exportação JSON no painel
 - redução do risco de XSS com criação segura de elementos DOM
 - melhoria de mensagens de erro e carregamento de métricas
+- exibição do provider ativo e seleção de quantidade de execuções no painel
 
 ### Qualidade
 
 - adição de testes automatizados para parser e API
+- adição de testes para camada de serviço de OCR
 - atualização do README para refletir o projeto real
 - limpeza estrutural do repositório para manter somente arquivos legítimos
+- inclusão de `Makefile`, `.env.example` e pipeline CI no GitHub Actions
 
 ## Impacto
 

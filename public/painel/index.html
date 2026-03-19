@@ -124,6 +124,24 @@
       font-weight: 700;
       color: var(--text);
     }
+    .meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin-top: 1rem;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.45rem 0.8rem;
+      border-radius: 999px;
+      background: #edf4ff;
+      border: 1px solid #cfe0ff;
+      color: #194077;
+      font-weight: 600;
+    }
   </style>
 </head>
 <body>
@@ -134,10 +152,17 @@
   <form id="form-ocr">
     <div id="upload-area">
       <input type="file" id="imagemInput" accept="image/*" required />
+      <label for="execucoesInput">Execuções</label>
+      <input type="number" id="execucoesInput" min="1" max="5" value="1" style="width: 90px;" />
       <button id="btn-ocr" type="submit" class="btn">Enviar imagem para OCR</button>
       <button type="button" class="btn" id="btn-atualizar-json">Atualizar JSON</button>
     </div>
   </form>
+
+  <div class="meta">
+    <div class="chip" id="provider-status">OCR: carregando...</div>
+    <div class="chip" id="docs-status">Docs: carregando...</div>
+  </div>
 
   <div id="metricas"></div>
   <img id="grafico" src="/grafico" alt="Gráfico de aprendizado" />
@@ -168,6 +193,8 @@
 <script>
   const tabela = document.querySelector("#tabela tbody");
   const saida = document.getElementById("saida");
+  const providerStatus = document.getElementById("provider-status");
+  const docsStatus = document.getElementById("docs-status");
 
   function mostrarToast(msg, tipo) {
     const toast = document.getElementById("toast");
@@ -332,6 +359,22 @@
     }
   }
 
+  async function carregarStatusAplicacao() {
+    try {
+      const res = await fetch("/health");
+      const body = await lerResposta(res);
+      if (!res.ok) {
+        throw new Error(body.detail || "Falha ao carregar status da aplicação.");
+      }
+      providerStatus.textContent = `OCR: ${body.ocr_provider}`;
+      docsStatus.textContent = `Docs: ${body.docs_enabled ? "habilitadas" : "desabilitadas"}`;
+    } catch (err) {
+      providerStatus.textContent = "OCR: indisponível";
+      docsStatus.textContent = "Docs: indisponíveis";
+      mostrarToast(err.message, "error");
+    }
+  }
+
   function exportarJSON() {
     const dados = coletarLinhas();
     const blob = new Blob([JSON.stringify(dados, null, 2)], { type: "application/json" });
@@ -359,12 +402,13 @@
 
     const formData = new FormData();
     formData.append("file", file);
+    const execucoes = Number(document.getElementById("execucoesInput").value || 1);
     const button = document.getElementById("btn-ocr");
     button.disabled = true;
     button.textContent = "Processando...";
 
     try {
-      const res = await fetch("/ocr", { method: "POST", body: formData });
+      const res = await fetch(`/ocr?execucoes=${execucoes}`, { method: "POST", body: formData });
       const body = await lerResposta(res);
       if (!res.ok) {
         throw new Error(body.detail || "Falha no OCR.");
@@ -372,6 +416,7 @@
 
       tabela.innerHTML = "";
       (body.promocoes || []).forEach((item, indice) => adicionarLinha(indice, item));
+      providerStatus.textContent = `OCR: ${body.ocr_provider || "desconhecido"}`;
       mostrarToast("OCR concluído com sucesso.", "success");
       await carregarMetricas();
     } catch (err) {
@@ -384,6 +429,7 @@
 
   carregarUltimoJSON();
   carregarMetricas();
+  carregarStatusAplicacao();
 </script>
 </body>
 </html>

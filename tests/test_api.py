@@ -10,8 +10,6 @@ from fastapi import HTTPException, UploadFile
 from starlette.responses import FileResponse
 
 import main
-
-
 class ApiTests(unittest.TestCase):
     def setUp(self) -> None:
         self.temp_dir = tempfile.TemporaryDirectory()
@@ -77,6 +75,48 @@ class ApiTests(unittest.TestCase):
         with self.assertRaises(HTTPException) as context:
             main.validar_upload_imagem(upload, b"conteudo")
         self.assertEqual(context.exception.status_code, 400)
+
+    def test_healthcheck_exposes_runtime_mode(self) -> None:
+        response = asyncio.run(main.healthcheck())
+        self.assertEqual(response["status"], "ok")
+        self.assertIn(response["ocr_provider"], {"mock", "google"})
+
+    def test_ocr_returns_promotions_in_mock_mode(self) -> None:
+        class FakeUpload:
+            filename = "encarte.png"
+            content_type = "image/png"
+
+            async def read(self) -> bytes:
+                return b"fake-image"
+
+        upload = FakeUpload()
+
+        resultado_ocr = {
+            "imagem_hash": "abc123def456",
+            "timestamp": "20260319_131000",
+            "ocr_provider": "mock",
+            "resultados_parser": [
+                [
+                    {
+                        "produto": "Geladinho Gourmet De Chocolate",
+                        "preco_original": "R$ 10,99",
+                        "preco_promocional": "R$ 7,99",
+                        "condicao": "NA COMPRA DE 2 UN.",
+                    }
+                ]
+            ],
+        }
+
+        with patch.object(main, "processar_ocr", return_value=resultado_ocr), patch.object(
+            main,
+            "atualizar_ultimo_json",
+            return_value=self.latest_result_path,
+        ):
+            response = asyncio.run(main.ocr_vision(upload, 1))
+
+        self.assertEqual(response["ocr_provider"], "mock")
+        self.assertEqual(len(response["promocoes"]), 1)
+        self.assertEqual(response["promocoes"][0]["produto"], "Geladinho Gourmet De Chocolate")
 
 
 if __name__ == "__main__":
