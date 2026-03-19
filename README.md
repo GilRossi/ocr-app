@@ -171,6 +171,8 @@ cp .env.example .env
 export OCR_PROVIDER=mock
 ```
 
+O arquivo `.env` é apenas local e não deve ser commitado.
+
 Para usar OCR real com Google Vision:
 
 ```bash
@@ -179,6 +181,15 @@ export OCR_PROVIDER=google
 ```
 
 As credenciais devem ficar fora do repositório.
+
+Exemplo seguro no Linux/macOS:
+
+```bash
+mkdir -p ~/.config/ocr-app
+mv sua-service-account.json ~/.config/ocr-app/google-vision.json
+chmod 600 ~/.config/ocr-app/google-vision.json
+export GOOGLE_APPLICATION_CREDENTIALS="$HOME/.config/ocr-app/google-vision.json"
+```
 
 5. **Executar a aplicação**
 ```bash
@@ -196,6 +207,12 @@ make run
 * Painel web: http://127.0.0.1:8000/painel
 * Documentação da API: http://127.0.0.1:8000/docs
 * Healthcheck: http://127.0.0.1:8000/health
+
+Se a porta `8000` já estiver ocupada:
+
+```bash
+uvicorn main:app --reload --port 8010
+```
 
 ---
 
