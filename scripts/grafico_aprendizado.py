@@ -1,38 +1,48 @@
-import os
 import json
+import os
+import tempfile
+
+os.environ.setdefault("MPLCONFIGDIR", os.path.join(tempfile.gettempdir(), "ocr-app-matplotlib"))
+import matplotlib
+
+from app_paths import FEEDBACK_DIR, LEARNING_CHART_PATH, ensure_runtime_dirs
+
+
+matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
-# Caminho da pasta com os feedbacks
-FEEDBACK_DIR = "feedbacks"
-ARQUIVOS = sorted([f for f in os.listdir(FEEDBACK_DIR) if f.endswith(".json")])
 
-precisoes = []
-nomes = []
+ensure_runtime_dirs()
 
-for arquivo in ARQUIVOS:
-    caminho = os.path.join(FEEDBACK_DIR, arquivo)
-    with open(caminho, "r", encoding="utf-8") as f:
-        dados = json.load(f)
 
-    total = len(dados)
-    corretos = sum(1 for item in dados if item.get("status") == "ok")
-    precisao = round((corretos / total) * 100, 2) if total > 0 else 0.0
+def gerar_grafico_aprendizado():
+    arquivos = sorted(FEEDBACK_DIR.glob("*.json"))
+    precisoes: list[float] = []
+    nomes: list[str] = []
 
-    precisoes.append(precisao)
-    nomes.append(arquivo.replace("feedback_", "").replace(".json", ""))
+    for arquivo in arquivos:
+        dados = json.loads(arquivo.read_text(encoding="utf-8"))
+        total = len(dados)
+        corretos = sum(1 for item in dados if item.get("status") == "ok")
+        precisao = round((corretos / total) * 100, 2) if total > 0 else 0.0
+        precisoes.append(precisao)
+        nomes.append(arquivo.stem.replace("feedback_", ""))
 
-    print(f"[{arquivo}] Total: {total}, OK: {corretos}, Precisão: {precisao}%")
+    plt.figure(figsize=(10, 5))
+    if precisoes:
+        plt.plot(nomes, precisoes, marker="o", linestyle="-", color="blue")
+    else:
+        plt.plot([], [])
+    plt.title("Evolução da Precisão dos Feedbacks")
+    plt.xlabel("Execução")
+    plt.ylabel("Precisão (%)")
+    plt.xticks(rotation=45, ha="right")
+    plt.grid(True)
+    plt.tight_layout()
+    plt.savefig(LEARNING_CHART_PATH)
+    plt.close()
+    return LEARNING_CHART_PATH
 
-# Gera o gráfico
-plt.figure(figsize=(10, 5))
-plt.plot(nomes, precisoes, marker='o', linestyle='-', color='blue')
-plt.title("Evolução da Precisão dos Feedbacks")
-plt.xlabel("Execução")
-plt.ylabel("Precisão (%)")
-plt.xticks(rotation=45, ha="right")
-plt.grid(True)
-plt.tight_layout()
-plt.savefig("grafico_aprendizado.png")
-plt.show()
 
-print("\n✅ Gráfico salvo como 'grafico_aprendizado.png'")
+if __name__ == "__main__":
+    print(gerar_grafico_aprendizado())

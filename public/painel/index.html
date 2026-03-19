@@ -5,28 +5,46 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Painel OCR Interativo</title>
   <style>
+    :root {
+      --bg: #f4f6fb;
+      --panel: #ffffff;
+      --accent: #1f6feb;
+      --accent-dark: #1249a5;
+      --ok: #e9f9ee;
+      --warn: #fff1f0;
+      --text: #243041;
+      --muted: #5c6b80;
+      --border: #d8e0ec;
+    }
+    * { box-sizing: border-box; }
     body {
-      font-family: 'Segoe UI', sans-serif;
+      font-family: "Segoe UI", sans-serif;
       margin: 0;
       padding: 2rem;
-      background: #f9f9f9;
-      color: #333;
+      background: linear-gradient(180deg, #eef3fb 0%, #f9fbff 100%);
+      color: var(--text);
     }
     main {
-      max-width: 1100px;
+      max-width: 1120px;
       margin: auto;
-      background: white;
+      background: var(--panel);
       padding: 2rem;
-      border-radius: 8px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      border-radius: 18px;
+      box-shadow: 0 24px 60px rgba(28, 46, 78, 0.12);
     }
     h1 {
+      margin-top: 0;
       text-align: center;
-      color: #2c3e50;
+      color: #16324f;
+      margin-bottom: 0.75rem;
+    }
+    p {
+      text-align: center;
+      color: var(--muted);
       margin-bottom: 2rem;
     }
-    #upload-area {
-      margin-bottom: 2rem;
+    #upload-area,
+    .actions {
       display: flex;
       flex-wrap: wrap;
       gap: 1rem;
@@ -35,80 +53,94 @@
     table {
       width: 100%;
       border-collapse: collapse;
-      margin-top: 2rem;
+      margin-top: 1.5rem;
     }
     th, td {
-      padding: 0.6rem;
-      border: 1px solid #ddd;
+      padding: 0.75rem;
+      border: 1px solid var(--border);
       text-align: left;
+      vertical-align: top;
     }
     th {
-      background: #f0f0f0;
+      background: #f6f8fc;
     }
-    input[type="text"] {
+    input[type="text"],
+    select {
       width: 100%;
-      padding: 0.4rem;
-      box-sizing: border-box;
-      word-break: break-word;
+      padding: 0.55rem 0.65rem;
+      border: 1px solid #cbd5e1;
+      border-radius: 10px;
+      background: #fff;
+      color: var(--text);
     }
     .btn {
-      padding: 0.6rem 1.2rem;
-      background: #007bff;
+      padding: 0.75rem 1.2rem;
+      background: var(--accent);
       color: white;
       border: none;
-      border-radius: 4px;
+      border-radius: 999px;
       cursor: pointer;
-      transition: background 0.3s ease;
+      transition: background 0.2s ease, transform 0.2s ease;
     }
     .btn:hover {
-      background: #0056b3;
+      background: var(--accent-dark);
+      transform: translateY(-1px);
     }
-    .ajustar { background-color: #fff4f4; }
-    .ok { background-color: #f1fff1; }
+    .btn:disabled {
+      cursor: wait;
+      opacity: 0.7;
+      transform: none;
+    }
+    tr.ajustar { background-color: var(--warn); }
+    tr.ok { background-color: var(--ok); }
     .toast {
       padding: 1rem;
       margin-top: 1.5rem;
-      border-radius: 5px;
+      border-radius: 12px;
       display: none;
-      font-weight: bold;
+      font-weight: 700;
     }
-    .toast.success { background-color: #d4edda; color: #155724; }
-    .toast.error { background-color: #f8d7da; color: #721c24; }
+    .toast.success { background-color: #dff6e6; color: #14532d; }
+    .toast.error { background-color: #fde2e2; color: #7f1d1d; }
     pre {
-      background: #f3f3f3;
+      background: #101828;
+      color: #e2e8f0;
       padding: 1rem;
-      margin-top: 2rem;
+      margin-top: 1.5rem;
       overflow-x: auto;
-      border-radius: 5px;
+      border-radius: 14px;
       font-size: 0.9rem;
+      min-height: 52px;
     }
     #grafico {
-      max-width: 100%;
-      border: 1px solid #ccc;
+      width: 100%;
+      border: 1px solid var(--border);
       margin-top: 1rem;
-      border-radius: 5px;
+      border-radius: 14px;
+      background: white;
     }
     #metricas {
-      margin: 1rem 0;
-      font-weight: bold;
-      color: #333;
+      margin: 1.25rem 0 0;
+      font-weight: 700;
+      color: var(--text);
     }
   </style>
 </head>
 <body>
 <main>
-  <h1>📊 Painel Interativo de Correção OCR</h1>
+  <h1>Painel Interativo de Correção OCR</h1>
+  <p>Revise o reconhecimento das promoções, corrija os campos necessários e alimente o aprendizado incremental.</p>
 
   <form id="form-ocr">
     <div id="upload-area">
       <input type="file" id="imagemInput" accept="image/*" required />
-      <button type="submit" class="btn">📷 Enviar Imagem para OCR</button>
-      <button type="button" class="btn" onclick="atualizarUltimoJson()">🔄 Atualizar JSON</button>
+      <button id="btn-ocr" type="submit" class="btn">Enviar imagem para OCR</button>
+      <button type="button" class="btn" id="btn-atualizar-json">Atualizar JSON</button>
     </div>
   </form>
 
   <div id="metricas"></div>
-  <img id="grafico" src="/grafico" alt="Gráfico de Aprendizado" />
+  <img id="grafico" src="/grafico" alt="Gráfico de aprendizado" />
 
   <table id="tabela">
     <thead>
@@ -124,10 +156,10 @@
     <tbody></tbody>
   </table>
 
-  <div style="margin-top: 2rem;">
-    <button class="btn" onclick="enviarFeedback()">🚀 Enviar Feedback</button>
-    <button class="btn" onclick="rodarAprendizado()">🤖 Rodar Aprendizado</button>
-    <button class="btn" onclick="exportarJSON()">💾 Exportar JSON</button>
+  <div class="actions" style="margin-top: 2rem;">
+    <button class="btn" type="button" id="btn-feedback">Enviar feedback</button>
+    <button class="btn" type="button" id="btn-aprender">Rodar aprendizado</button>
+    <button class="btn" type="button" id="btn-exportar">Exportar JSON</button>
   </div>
 
   <div id="toast" class="toast" aria-live="polite"></div>
@@ -135,55 +167,82 @@
 </main>
 <script>
   const tabela = document.querySelector("#tabela tbody");
+  const saida = document.getElementById("saida");
 
   function mostrarToast(msg, tipo) {
-    console.log(`[TOAST] ${tipo}:`, msg);
     const toast = document.getElementById("toast");
     toast.textContent = msg;
     toast.className = `toast ${tipo}`;
     toast.style.display = "block";
-    setTimeout(() => toast.style.display = "none", 4000);
+    window.setTimeout(() => {
+      toast.style.display = "none";
+    }, 4000);
   }
 
-  function adicionarLinha(i, item) {
-    console.log(`[DEBUG] Adicionando linha ${i + 1}`, item);
+  function criarInput(valor) {
+    const input = document.createElement("input");
+    input.type = "text";
+    input.value = valor || "";
+    return input;
+  }
+
+  function adicionarLinha(indice, item) {
     const tr = document.createElement("tr");
     tr.className = item.status === "ajustar" ? "ajustar" : "ok";
-    tr.innerHTML = `
-      <td>${i + 1}</td>
-      <td><input type="text" value="${item.produto || ""}" /></td>
-      <td><input type="text" value="${item.preco_original || ""}" /></td>
-      <td><input type="text" value="${item.preco_promocional || ""}" /></td>
-      <td><input type="text" value="${item.condicao || ""}" /></td>
-      <td>
-        <select onchange="atualizarStatus(this)">
-          <option value="ok" ${item.status === "ok" ? "selected" : ""}>✔️ Correto</option>
-          <option value="ajustar" ${item.status === "ajustar" ? "selected" : ""}>❌ Corrigir</option>
-        </select>
-      </td>`;
+
+    const tdIndice = document.createElement("td");
+    tdIndice.textContent = String(indice + 1);
+
+    const tdProduto = document.createElement("td");
+    tdProduto.appendChild(criarInput(item.produto));
+
+    const tdPrecoOriginal = document.createElement("td");
+    tdPrecoOriginal.appendChild(criarInput(item.preco_original));
+
+    const tdPrecoPromocional = document.createElement("td");
+    tdPrecoPromocional.appendChild(criarInput(item.preco_promocional));
+
+    const tdCondicao = document.createElement("td");
+    tdCondicao.appendChild(criarInput(item.condicao));
+
+    const tdStatus = document.createElement("td");
+    const select = document.createElement("select");
+    [{ value: "ok", label: "Correto" }, { value: "ajustar", label: "Corrigir" }].forEach((optionData) => {
+      const option = document.createElement("option");
+      option.value = optionData.value;
+      option.textContent = optionData.label;
+      option.selected = item.status === optionData.value;
+      select.appendChild(option);
+    });
+    select.addEventListener("change", () => {
+      tr.className = select.value === "ajustar" ? "ajustar" : "ok";
+    });
+    tdStatus.appendChild(select);
+
+    tr.append(tdIndice, tdProduto, tdPrecoOriginal, tdPrecoPromocional, tdCondicao, tdStatus);
     tabela.appendChild(tr);
   }
 
-  function atualizarStatus(select) {
-    const linha = select.closest("tr");
-    linha.className = select.value === "ajustar" ? "ajustar" : "ok";
-  }
-
   function coletarLinhas() {
-    const resultado = [];
-    tabela.querySelectorAll("tr").forEach((linha) => {
+    return Array.from(tabela.querySelectorAll("tr")).map((linha) => {
       const inputs = linha.querySelectorAll("input");
       const status = linha.querySelector("select").value;
-      resultado.push({
-        produto: inputs[0].value,
-        preco_original: inputs[1].value || null,
-        preco_promocional: inputs[2].value,
-        condicao: inputs[3].value || null,
-        status: status
-      });
+      return {
+        produto: inputs[0].value.trim(),
+        preco_original: inputs[1].value.trim() || null,
+        preco_promocional: inputs[2].value.trim(),
+        condicao: inputs[3].value.trim() || null,
+        status
+      };
     });
-    console.log("[DEBUG] Linhas coletadas:", resultado);
-    return resultado;
+  }
+
+  async function lerResposta(res) {
+    const contentType = res.headers.get("content-type") || "";
+    if (contentType.includes("application/json")) {
+      return res.json();
+    }
+    return { detail: await res.text() };
   }
 
   async function enviarFeedback() {
@@ -194,91 +253,132 @@
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(dados)
       });
-      mostrarToast(res.ok ? "✅ Feedback enviado!" : "❌ Erro ao enviar feedback.", res.ok ? "success" : "error");
+      const body = await lerResposta(res);
+      if (!res.ok) {
+        throw new Error(body.detail || "Falha ao enviar feedback.");
+      }
+      mostrarToast("Feedback enviado com sucesso.", "success");
     } catch (err) {
-      console.error("[ERRO] Envio de feedback:", err);
-      mostrarToast("❌ Erro de rede ao enviar feedback.", "error");
+      mostrarToast(err.message, "error");
     }
   }
 
   async function atualizarUltimoJson() {
     try {
       const res = await fetch("/atualizar-json", { method: "POST" });
-      const data = await res.json();
-      mostrarToast("📦 JSON atualizado: " + data.arquivo, "success");
+      const body = await lerResposta(res);
+      if (!res.ok) {
+        throw new Error(body.detail || "Falha ao atualizar JSON.");
+      }
+      mostrarToast(`JSON atualizado: ${body.arquivo}`, "success");
       await carregarUltimoJSON();
-    } catch (e) {
-      console.error("[ERRO] Atualizar JSON:", e);
-      mostrarToast("❌ Erro ao atualizar JSON: " + e.message, "error");
+    } catch (err) {
+      mostrarToast(err.message, "error");
     }
   }
 
   async function rodarAprendizado() {
     try {
       const res = await fetch("/aprender", { method: "POST" });
-      const json = await res.json();
-      document.getElementById("saida").textContent = json.log;
-      mostrarToast("🤖 Aprendizado executado!", "success");
-      carregarMetricas();
-    } catch (e) {
-      console.error("[ERRO] Aprendizado:", e);
-      mostrarToast("❌ Erro ao rodar aprendizado: " + e.message, "error");
+      const body = await lerResposta(res);
+      if (!res.ok) {
+        throw new Error(body.detail || "Falha ao rodar aprendizado.");
+      }
+      saida.textContent = JSON.stringify(body.resumo, null, 2);
+      mostrarToast("Aprendizado executado com sucesso.", "success");
+      await carregarMetricas();
+    } catch (err) {
+      mostrarToast(err.message, "error");
     }
   }
 
   async function carregarUltimoJSON() {
     try {
       const res = await fetch("/ultimoreconhecimento.json");
-      const json = await res.json();
-      const dados = Array.isArray(json) ? json : json.resultado_final?.resultados_parser?.[0] || json.resultados_parser?.[0] || json.promocoes || [];
+      const body = await lerResposta(res);
+      if (!res.ok) {
+        throw new Error(body.detail || "Nenhum reconhecimento disponível.");
+      }
 
-      if (!dados.length) return mostrarToast("⚠️ Nenhuma promoção encontrada.", "error");
+      const dados = Array.isArray(body)
+        ? body
+        : body.resultado_final?.resultados_parser?.[0] || body.resultados_parser?.[0] || body.promocoes || [];
+
       tabela.innerHTML = "";
-      dados.forEach((item, i) => adicionarLinha(i, item));
-      mostrarToast("✅ Painel carregado com sucesso!", "success");
-    } catch (e) {
-      console.error("[ERRO] Carregando JSON:", e);
-      mostrarToast("❌ Erro ao carregar JSON: " + e.message, "error");
+      if (!dados.length) {
+        mostrarToast("Nenhuma promoção encontrada.", "error");
+        return;
+      }
+
+      dados.forEach((item, indice) => adicionarLinha(indice, item));
+      mostrarToast("Painel carregado com sucesso.", "success");
+    } catch (err) {
+      mostrarToast(err.message, "error");
     }
   }
 
   async function carregarMetricas() {
     try {
       const res = await fetch("/metricas");
-      const json = await res.json();
-      document.getElementById("metricas").innerHTML = `🧠 Precisão atual: <strong>${json.precisao}%</strong> (${json.total_corretos} de ${json.total_feedbacks})`;
-      document.getElementById("grafico").src = "/grafico?" + Date.now();
-    } catch (e) {
-      console.error("[ERRO] Carregar métricas:", e);
-      mostrarToast("⚠️ Erro ao carregar métricas", "error");
+      const body = await lerResposta(res);
+      if (!res.ok) {
+        throw new Error(body.detail || "Falha ao carregar métricas.");
+      }
+      document.getElementById("metricas").innerHTML =
+        `Precisão atual: <strong>${body.precisao}%</strong> (${body.total_corretos} de ${body.total_feedbacks})`;
+      document.getElementById("grafico").src = `/grafico?${Date.now()}`;
+    } catch (err) {
+      mostrarToast(err.message, "error");
     }
   }
 
-  document.getElementById("form-ocr").addEventListener("submit", async (e) => {
-    e.preventDefault();
+  function exportarJSON() {
+    const dados = coletarLinhas();
+    const blob = new Blob([JSON.stringify(dados, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "feedback-ocr.json";
+    link.click();
+    URL.revokeObjectURL(url);
+  }
+
+  document.getElementById("btn-feedback").addEventListener("click", enviarFeedback);
+  document.getElementById("btn-aprender").addEventListener("click", rodarAprendizado);
+  document.getElementById("btn-exportar").addEventListener("click", exportarJSON);
+  document.getElementById("btn-atualizar-json").addEventListener("click", atualizarUltimoJson);
+
+  document.getElementById("form-ocr").addEventListener("submit", async (event) => {
+    event.preventDefault();
     const input = document.getElementById("imagemInput");
     const file = input.files[0];
-    if (!file) return mostrarToast("⚠️ Selecione uma imagem!", "error");
+    if (!file) {
+      mostrarToast("Selecione uma imagem antes de enviar.", "error");
+      return;
+    }
 
     const formData = new FormData();
     formData.append("file", file);
-    const btn = e.submitter;
-    btn.disabled = true;
-    btn.textContent = "⏳ Processando...";
+    const button = document.getElementById("btn-ocr");
+    button.disabled = true;
+    button.textContent = "Processando...";
 
     try {
       const res = await fetch("/ocr", { method: "POST", body: formData });
-      const json = await res.json();
-      const dados = json.promocoes || [];
+      const body = await lerResposta(res);
+      if (!res.ok) {
+        throw new Error(body.detail || "Falha no OCR.");
+      }
+
       tabela.innerHTML = "";
-      dados.forEach((item, i) => adicionarLinha(i, item));
-      mostrarToast("📄 OCR concluído!", "success");
-    } catch (e) {
-      console.error("[ERRO] OCR:", e);
-      mostrarToast("❌ Erro ao processar imagem: " + e.message, "error");
+      (body.promocoes || []).forEach((item, indice) => adicionarLinha(indice, item));
+      mostrarToast("OCR concluído com sucesso.", "success");
+      await carregarMetricas();
+    } catch (err) {
+      mostrarToast(err.message, "error");
     } finally {
-      btn.disabled = false;
-      btn.textContent = "📷 Enviar Imagem para OCR";
+      button.disabled = false;
+      button.textContent = "Enviar imagem para OCR";
     }
   });
 

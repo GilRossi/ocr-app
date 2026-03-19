@@ -1,16 +1,16 @@
-import os
 import shutil
+from pathlib import Path
 
-def atualizar_ultimo_json(dataset_dir="dataset", destino="public/ultimoreconhecimento.json"):
-    arquivos = [
-        os.path.join(dataset_dir, f)
-        for f in os.listdir(dataset_dir)
-        if f.endswith(".json")
-    ]
+from app_paths import DATASET_DIR, LATEST_RESULT_PATH, ensure_runtime_dirs
+
+
+def atualizar_ultimo_json(dataset_dir: Path = DATASET_DIR, destino: Path = LATEST_RESULT_PATH) -> Path:
+    ensure_runtime_dirs()
+    arquivos = sorted(dataset_dir.glob("*.json"), key=lambda item: item.stat().st_mtime)
     if not arquivos:
-        print("❌ Nenhum arquivo JSON encontrado.")
-        return
+        raise FileNotFoundError("Nenhum arquivo JSON encontrado no dataset.")
 
-    ultimo = max(arquivos, key=os.path.getmtime)
-    shutil.copy(ultimo, destino)
-    print(f"✅ Último JSON copiado para: {destino}")
+    destino.parent.mkdir(parents=True, exist_ok=True)
+    ultimo = arquivos[-1]
+    shutil.copy2(ultimo, destino)
+    return destino
