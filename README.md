@@ -197,6 +197,14 @@ python3 -m unittest discover -s tests
 
 ---
 
+## 📘 Documentação Operacional
+
+* [Checklist Operacional](docs/OPERATIONS_CHECKLIST.md)
+* [Notas de Release](docs/RELEASE_NOTES_2026-03-19.md)
+* [Descrição de PR](docs/PR_DESCRIPTION.md)
+
+---
+
 ## 📋 Fluxos Principais
 
 ### Fluxo OCR

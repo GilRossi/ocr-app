@@ -1,8 +1,17 @@
 .idea/
+.codex/
+.claude/
+.cursor/
+.vscode/
 .venv/
 venv/
 __pycache__/
 *.py[cod]
+AGENTS.md
+agents.md
+SKILL.md
+skills.md
+CLAUDE.md
 
 feedbacks/*.json
 dataset/*.json
@@ -17,3 +26,7 @@ grafico_aprendizado.png
 
 ocr-*.json
 *service-account*.json
+*.pem
+*.key
+.env
+.env.*
